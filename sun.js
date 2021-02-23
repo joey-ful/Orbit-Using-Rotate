@@ -1,20 +1,26 @@
+import {SunInfo} from './planetInfo.js';
+
 export default class Sun {
-  constructor() {
+  constructor(stageWidth, stageHeight) {
+    this.name = SunInfo.name;
+    this.radius = SunInfo.radius;
+    this.color = SunInfo.color;
+    this.x = stageWidth / 2 - this.radius;
+    this.y = stageHeight / 2 - this.radius;
     this.sun = new Image();
-    this.sun.src = 'https://mdn.mozillademos.org/files/1456/Canvas_sun.png';
+    this.sun.src = './srcs/sun.png';
   }
 
   draw(ctx) {
-    // restore original canvas (canvas 0)
     ctx.restore();
 
-    // Earth orbit path
-    ctx.beginPath();
-    ctx.arc(150, 150, 105, 0, Math.PI * 2, false);
-    ctx.strokeStyle = 'rgba(0, 153, 255, 0.4)';
-    ctx.stroke();
-
-    // draw Sun
-    ctx.drawImage(this.sun, 0, 0, 300, 300);
+    ctx.save();
+    ctx.shadowColor = this.color;
+    ctx.shadowBlur = this.radius;
+    
+    ctx.drawImage(this.sun, this.x, this.y, this.radius * 2, this.radius * 2);
+    ctx.restore();
+    
+    
   }
 }

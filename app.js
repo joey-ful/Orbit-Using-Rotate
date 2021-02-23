@@ -1,46 +1,89 @@
 import Sun from './sun.js';
-import Moon from './moon.js';
-import Earth from './earth.js';
+import Planet from './planet.js';
+import {SunInfo, MoonInfo, PlanetInfo} from './planetInfo.js';
+import Background from './background.js';
 
 class App {
   constructor() {
-    this.canvas = document.createElement('canvas');
-    this.canvas.setAttribute('id', 'canvas');
-    this.ctx = this.canvas.getContext('2d');
+    this.stage = document.createElement('div');
+    this.stage.setAttribute('id', 'stage');
+    document.body.appendChild(this.stage);
 
-    document.body.appendChild(this.canvas);
+    this.stage.appendChild(this.createAndAppendCanvas('back'));
+    this.stage.appendChild(this.createAndAppendCanvas(''));
+    this.stage.appendChild(this.createAndAppendCanvas('path'));
 
     window.addEventListener('resize', this.resize.bind(this));
     this.resize();
 
-    this.sun = new Sun();
-    this.moon = new Moon();
-    this.earth = new Earth();
+    this.sun = new Sun(this.stageWidth, this.stageHeight);
 
+    this.createPlanets();
+
+    new Background(400, this.backctx, this.stageWidth, this.stageHeight);
     this.animate();
+  }
+
+  createAndAppendCanvas(name) {
+    this[`${name}canvas`] = document.createElement('canvas');
+    this[`${name}canvas`].setAttribute('id', `${name}canvas`);
+
+    this[`${name}ctx`] = this[`${name}canvas`].getContext('2d');
+
+    return this[`${name}canvas`];
   }
 
   resize() {
     this.stageWidth = document.body.clientWidth;
     this.stageHeight = document.body.clientHeight;
 
-    this.canvas.width = this.stageWidth * 2;
-    this.canvas.height = this.stageHeight * 2;
+    this.sizeCanvasAndScaleCtx('');
+    this.sizeCanvasAndScaleCtx('back');
+    this.sizeCanvasAndScaleCtx('path');
+  }
 
-    this.ctx.scale(2, 2);
+  sizeCanvasAndScaleCtx(name) {
+    this[`${name}canvas`].width = this.stageWidth * 2;
+    this[`${name}canvas`].height = this.stageHeight * 2;
+
+    this[`${name}ctx`].scale(2, 2);
+  }
+
+  createPlanets() {
+    this.planets = [];
+    PlanetInfo.forEach((planet) => {
+      this.planets.push(
+        new Planet(
+          planet.name,
+          planet.radius,
+          planet.color,
+          planet.orbitRadius,
+          planet.velocity
+        )
+      );
+    });
   }
 
   animate() {
     window.requestAnimationFrame(this.animate.bind(this));
-    
+
     this.time = new Date();
 
     // first drawn, drawn on top
     this.ctx.globalCompositeOperation = 'destination-over';
-    this.ctx.clearRect(0, 0, 300, 300);
-    
-    this.earth.draw(this.ctx, this.time);
-    this.moon.draw(this.ctx, this.time);
+    this.ctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+    this.pathctx.clearRect(0, 0, this.stageWidth, this.stageHeight);
+
+    this.planets.forEach((planet) => {
+      planet.update(
+        this.ctx,
+        this.time,
+        this.stageWidth,
+        this.stageHeight,
+        this.pathctx
+      );
+    });
+
     this.sun.draw(this.ctx);
   }
 }
